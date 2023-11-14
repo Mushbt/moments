@@ -17,6 +17,7 @@ import NoResults from "../../assets/no-results.png";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { fetchMoreData } from "../../utils/utils";
 import PopularProfiles from "../profiles/PopularProfiles";
+import { useCurrentUser } from "../../contexts/CurrentUserContext";
 
 function PostsPage({ message, filter = "" }) {
   const [posts, setPosts] = useState({ results: [] });
@@ -25,6 +26,8 @@ function PostsPage({ message, filter = "" }) {
 
   const [query, setQuery] = useState("");
 
+  const currentUser = useCurrentUser();
+
   useEffect(() => {
     const fetchPosts = async () => {
       try {
@@ -32,44 +35,45 @@ function PostsPage({ message, filter = "" }) {
         setPosts(data);
         setHasLoaded(true);
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
     };
 
     setHasLoaded(false);
     const timer = setTimeout(() => {
       fetchPosts();
-    }, 1000)
+    }, 1000);
+
     return () => {
-      clearTimeout(timer)
-    }
-  }, [filter, query, pathname]);
+      clearTimeout(timer);
+    };
+  }, [filter, query, pathname, currentUser]);
 
   return (
     <Row className="h-100">
       <Col className="py-2 p-0 p-lg-2" lg={8}>
         <PopularProfiles mobile />
         <i className={`fas fa-search ${styles.SearchIcon}`} />
-        <Form className={styles.SearchBar}
-        onSubmit={(event) => event.preventDefault()}
+        <Form
+          className={styles.SearchBar}
+          onSubmit={(event) => event.preventDefault()}
         >
-          <Form.Control 
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          type="test"
-          className="mr-sm-2"
-          placeholder="Search posts" />
+          <Form.Control
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            type="text"
+            className="mr-sm-2"
+            placeholder="Search posts"
+          />
         </Form>
 
         {hasLoaded ? (
           <>
             {posts.results.length ? (
-              <InfiniteScroll 
-                children={
-                  posts.results.map((post) => (
-                    <Post key={post.id} {...post} setPosts={setPosts} />
-                  ))
-                }
+              <InfiniteScroll
+                children={posts.results.map((post) => (
+                  <Post key={post.id} {...post} setPosts={setPosts} />
+                ))}
                 dataLength={posts.results.length}
                 loader={<Asset spinner />}
                 hasMore={!!posts.next}
